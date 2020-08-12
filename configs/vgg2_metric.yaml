@@ -1,0 +1,41 @@
+ # Config for training metric ALAE on vgg2 at resolution 256x256
+
+NAME: vgg2
+DATASET:
+  PART_COUNT: 16
+  SIZE: 739005
+  FFHQ_SOURCE: /media/hermes/dataspace/fl/dataset_tf/vgg2_metric/vgg2_%02d.tfrecords
+  PATH: /media/hermes/dataspace/fl/dataset_tf/vgg2_metric_split/vgg2_%02d.tfrecords.%03d
+
+  PART_COUNT_TEST: 0
+  PATH_TEST: /media/hermes/dataspace/fl/dataset_tf/vgg2_metric_split_test/vgg2_%02d.tfrecords.%03d
+
+  # SAMPLES_PATH: dataset_samples/faces/realign256x256
+  # STYLE_MIX_PATH: style_mixing/test_images/set_vgg2
+
+  MAX_RESOLUTION_LEVEL: 8
+
+MODEL:
+  LATENT_SPACE_SIZE: 512
+  LAYER_COUNT: 8
+  MAX_CHANNEL_COUNT: 512
+  START_CHANNEL_COUNT: 32
+  DLATENT_AVG_BETA: 0.995
+  MAPPING_LAYERS: 8
+  METRIC_START_LOD: 3
+
+OUTPUT_DIR: training_artifacts/vgg2_metric
+
+TRAIN:
+  BASE_LEARNING_RATE: 0.002
+  EPOCHS_PER_LOD: 16
+  LEARNING_DECAY_RATE: 0.1
+  LEARNING_DECAY_STEPS: []
+  TRAIN_EPOCHS: 300
+  #                    4    8   16    32    64    128    256
+  LOD_2_BATCH_8GPU: [256, 256, 128,   64,   32,    32,    32,       32,        32] # If GPU memory ~16GB reduce last number from 32 to 24
+  LOD_2_BATCH_4GPU: [256, 256, 128,   64,   32,    32,    32,       16]
+  LOD_2_BATCH_2GPU: [256, 256, 128,   64,   32,    32,    16]
+  LOD_2_BATCH_1GPU: [256, 256, 128,   64,   32,    16]
+
+  LEARNING_RATES: [0.0015,  0.0015,   0.0015,   0.0015,  0.0015,   0.0015,     0.002,     0.003,    0.003]

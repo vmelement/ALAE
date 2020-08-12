@@ -28,7 +28,7 @@ cpu = torch.device('cpu')
 
 
 class TFRecordsDataset:
-    def __init__(self, cfg, logger, rank=0, world_size=1, buffer_size_mb=200, channels=3, seed=None, train=True, needs_labels=False):
+    def __init__(self, cfg, logger, rank=0, world_size=1, buffer_size_mb=200, channels=3, seed=None, train=True, needs_labels=False, metric=False):
         self.cfg = cfg
         self.logger = logger
         self.rank = rank
@@ -49,6 +49,7 @@ class TFRecordsDataset:
         self.seed = seed
         self.train = train
         self.needs_labels = needs_labels
+        self.is_metric = metric
 
         assert self.part_count % world_size == 0
 
@@ -81,6 +82,13 @@ class TFRecordsDataset:
             self.features = {
                 # 'shape': db.FixedLenFeature([3], db.int64),
                 'data': db.FixedLenFeature([self.channels, img_size, img_size], db.uint8),
+                'label': db.FixedLenFeature([], db.int64)
+            }
+        elif self.is_metric:
+            self.features = {
+                # 'shape': db.FixedLenFeature([3], db.int64),
+                'data': db.FixedLenFeature([self.channels, img_size, img_size], db.uint8),
+                'match': db.FixedLenFeature([self.channels, img_size, img_size], db.uint8),
                 'label': db.FixedLenFeature([], db.int64)
             }
         else:
@@ -150,6 +158,26 @@ def make_dataloader_y(cfg, logger, dataset, GPU_batch_size, local_rank):
 
     return batches
 
+def make_dataloader_xy(cfg, logger, dataset, GPU_batch_size, local_rank):
+    class BatchCollator(object):
+        def __init__(self, device=torch.device("cpu")):
+            self.device = device
+            self.flip = cfg.DATASET.FLIP_IMAGES
+
+        def __call__(self, batch):
+            with torch.no_grad():
+                x, x2, y = batch
+                if self.flip:
+                    flips = [(slice(None, None, None), slice(None, None, None), slice(None, None, random.choice([-1, None]))) for _ in range(x.shape[0])]
+                    x = np.array([img[flip] for img, flip in zip(x, flips)])
+                    x2 = np.array([img[flip] for img, flip in zip(x, flips)])
+                x = torch.tensor(x, requires_grad=True, device=torch.device(self.device), dtype=torch.float32)
+                x2 = torch.tensor(x2, requires_grad=True, device=torch.device(self.device), dtype=torch.float32)
+                return x, x2, y
+
+    batches = db.data_loader(iter(dataset), BatchCollator(local_rank), len(dataset) // GPU_batch_size)
+
+    return batches
 
 class TFRecordsDatasetImageNet:
     def __init__(self, cfg, logger, rank=0, world_size=1, buffer_size_mb=200, channels=3, seed=None, train=True, needs_labels=False):
