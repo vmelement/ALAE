@@ -4,11 +4,11 @@ NAME: ffhq
 DATASET:
   PART_COUNT: 16
   SIZE: 60000
-  FFHQ_SOURCE: /data/datasets/ffhq-dataset/tfrecords/ffhq/ffhq-r%02d.tfrecords
-  PATH: /data/datasets/ffhq-dataset_new/tfrecords/ffhq/splitted/ffhq-r%02d.tfrecords.%03d
+  FFHQ_SOURCE: /media/hermes/dataspace/fl/dataset_tf/ffhq/ffhq-r%02d.tfrecords
+  PATH: /media/hermes/dataspace/fl/dataset_tf/ffhq_split/ffhq-r%02d.tfrecords.%03d
 
   PART_COUNT_TEST: 2
-  PATH_TEST: /data/datasets/ffhq-dataset_new/tfrecords/ffhq-test/splitted/ffhq-r%02d.tfrecords.%03d
+  PATH_TEST: /media/hermes/dataspace/fl/dataset_tf/ffhq_split_test/ffhq-r%02d.tfrecords.%03d
 
   SAMPLES_PATH: dataset_samples/faces/realign1024x1024
   STYLE_MIX_PATH: style_mixing/test_images/set_ffhq
